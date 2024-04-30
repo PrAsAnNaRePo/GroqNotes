@@ -22,6 +22,7 @@ class _TaskCardState extends State<TaskCard> {
       padding: const EdgeInsets.only(left: 10, right: 10, bottom: 15),
       child: Slidable(
         endActionPane: ActionPane(
+          extentRatio: 0.4,
           motion: const ScrollMotion(),
           children: [
             SlidableAction(
@@ -65,8 +66,8 @@ class _TaskCardState extends State<TaskCard> {
               },
             ),
             title: Text(
-              widget.task.taskList.length > 27
-                  ? "${widget.task.taskList.substring(0, 23)}..."
+              widget.task.taskList.length > 35
+                  ? "${widget.task.taskList.substring(0, 35)}..."
                   : widget.task.taskList,
               style: isCompleted
                   ? TextStyle(

@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:groq_some_notes/database/groq_tasks.dart';
 import 'package:groq_some_notes/utils/get_llm_response.dart';
@@ -51,11 +49,11 @@ class _CreateNotesState extends State<CreateNotes> {
                     child: Column(
                       children: [
                         Padding(
-                          padding: EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(10),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text("What to do with the text?"),
+                              const Text("What to do with the text?"),
                               GestureDetector(
                                 onTap: () {
                                   setState(() {

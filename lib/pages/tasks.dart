@@ -15,7 +15,8 @@ class TaskPage extends StatefulWidget {
   State<TaskPage> createState() => _TaskPageState();
 }
 
-class _TaskPageState extends State<TaskPage> {
+class _TaskPageState extends State<TaskPage>
+    with SingleTickerProviderStateMixin {
   final TextEditingController aiTaskController = TextEditingController();
   final TextEditingController manualTaskController = TextEditingController();
   Future<String>? _futureResponse;
@@ -78,57 +79,101 @@ class _TaskPageState extends State<TaskPage> {
         backgroundColor:
             Theme.of(context).colorScheme.secondary.withOpacity(0.2),
         onPressed: () {
-          showDialog(
+          showGeneralDialog(
             context: context,
-            builder: (context) {
-              return Dialog(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisSize:
-                        MainAxisSize.min, // To keep the dialog compact
-                    children: [
-                      TextField(
-                        maxLines: 1,
-                        controller: manualTaskController,
-                        decoration: InputDecoration(
-                          hintText: "Enter your task here...",
-                          hintStyle: GoogleFonts.openSans(fontSize: 18),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(20),
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return ScaleTransition(
+                scale: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves
+                      .elasticInOut, // This curve provides a spring-like effect
+                  reverseCurve: Curves.easeOutCubic,
+                ),
+                child: Dialog(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide(
+                        color: Theme.of(context).colorScheme.background,
+                        width: 2),
+                  ),
+                  elevation: 10,
+                  child: Container(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize:
+                          MainAxisSize.min, // To keep the dialog compact
+                      children: [
+                        TextField(
+                          autofocus: true,
+                          maxLines: 1,
+                          controller: manualTaskController,
+                          decoration: InputDecoration(
+                            hintText: "Enter your task here...",
+                            hintStyle: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              borderSide: BorderSide(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary),
+                            ),
+                            filled: true,
+                            fillColor: Theme.of(context).colorScheme.surface,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
                           ),
-                          contentPadding: const EdgeInsets.all(20),
                         ),
-                      ),
-                      const SizedBox(
-                          height: 16), // Space between text field and button
-                      InkWell(
-                        onTap: () {
-                          if (manualTaskController.text.isNotEmpty) {
-                            context
-                                .read<GroqTasksDatabase>()
-                                .addTask(manualTaskController.text);
-                            Navigator.pop(context);
-                          }
-                          return;
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.all(15.0),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.secondary,
-                            borderRadius: BorderRadius.circular(25),
+                        const SizedBox(
+                            height: 20), // Space between text field and button
+                        InkWell(
+                          onTap: () {
+                            if (manualTaskController.text.isNotEmpty) {
+                              context
+                                  .read<GroqTasksDatabase>()
+                                  .addTask(manualTaskController.text);
+                              manualTaskController.clear();
+                              FocusScope.of(context).unfocus();
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.secondary,
+                              borderRadius: BorderRadius.circular(25),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(15.0),
+                            child: Text(
+                              "Create",
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSecondary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
-                          child: const Text("Create"),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
             },
+            transitionDuration:
+                const Duration(milliseconds: 500), // Duration of the transition
+            barrierDismissible: true,
+            barrierLabel: 'Dismiss',
           );
         },
         child: Icon(
@@ -163,18 +208,21 @@ class _TaskPageState extends State<TaskPage> {
                     ),
                   ),
                   IconButton(
-                      onPressed: () {
-                        if (aiTaskController.text.isNotEmpty) {
-                          setState(() {
-                            _futureResponse = getTasksList(
-                                "Create a task list for:\n${aiTaskController.text}");
-                          });
-                        }
-                      },
-                      icon: Icon(
-                        Icons.send,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ))
+                    onPressed: () {
+                      if (aiTaskController.text.isNotEmpty) {
+                        setState(() {
+                          aiTaskController.clear();
+                          FocusScope.of(context).unfocus();
+                          _futureResponse = getTasksList(
+                              "Create a task list for:\n${aiTaskController.text}");
+                        });
+                      }
+                    },
+                    icon: Icon(
+                      Icons.send,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -215,7 +263,7 @@ class _TaskPageState extends State<TaskPage> {
                 context.read<GroqTasksDatabase>().fetchTasks();
                 return currentTasks.isNotEmpty
                     ? ListView.builder(
-                        padding: EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(5),
                         itemCount: currentTasks.length,
                         itemBuilder: (context, index) {
                           return TaskCard(

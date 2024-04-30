@@ -62,7 +62,7 @@ class _NotesPageState extends State<NotesPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) {
-                    return TaskPage();
+                    return const TaskPage();
                   },
                 ),
               );

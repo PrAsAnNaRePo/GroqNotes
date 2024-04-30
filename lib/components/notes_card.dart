@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:groq_some_notes/utils/convert_int_mon_to_string.dart';
 
 class NotesCard extends StatelessWidget {
