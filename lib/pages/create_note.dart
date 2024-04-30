@@ -116,6 +116,7 @@ class _CreateNotesState extends State<CreateNotes> {
             Padding(
               padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
               child: TextField(
+                cursorColor: Theme.of(context).colorScheme.secondary,
                 controller: titleController,
                 style: GoogleFonts.poppins(
                   fontSize: 18,
@@ -153,7 +154,8 @@ class _CreateNotesState extends State<CreateNotes> {
                   if (bodyController.text.isEmpty) {
                     return SizedBox(
                       width: MediaQuery.of(context).size.width * 0.9,
-                      child: TextFormField(
+                      child: TextField(
+                        cursorColor: Theme.of(context).colorScheme.secondary,
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                         ),

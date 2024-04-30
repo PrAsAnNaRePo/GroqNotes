@@ -41,7 +41,7 @@ class NotesCard extends StatelessWidget {
                 Text(
                   body.length > 100 ? '${body.substring(0, 100)}...' : body,
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     color: Theme.of(context)
                         .colorScheme
                         .inversePrimary
