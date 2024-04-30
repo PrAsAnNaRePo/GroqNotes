@@ -19,11 +19,12 @@ class _TaskPageState extends State<TaskPage> {
   final TextEditingController aiTaskController = TextEditingController();
   final TextEditingController manualTaskController = TextEditingController();
   Future<String>? _futureResponse;
+  bool _isTaskAdded = false;
 
   @override
   void initState() {
-    super.initState();
     context.read<GroqTasksDatabase>().fetchTasks();
+    super.initState();
   }
 
   @override
@@ -31,23 +32,6 @@ class _TaskPageState extends State<TaskPage> {
     aiTaskController.dispose();
     manualTaskController.dispose();
     super.dispose();
-  }
-
-  bool _isTaskAlreadyAdded(String task, List<Tasks> currentTasks) {
-    return currentTasks.any((t) =>
-        t.taskList == task); // Assuming Tasks has a 'description' property.
-  }
-
-  void _handleApiResponse(String apiResponse) {
-    List<String> tasksFromApi = apiResponse.split('\n');
-    final taskDatabase = context.read<GroqTasksDatabase>();
-
-    for (String task in tasksFromApi) {
-      if (!_isTaskAlreadyAdded(task, taskDatabase.currentTasks)) {
-        taskDatabase.addTask(task);
-        context.read<GroqTasksDatabase>().fetchTasks();
-      }
-    }
   }
 
   @override
@@ -215,9 +199,20 @@ class _TaskPageState extends State<TaskPage> {
                       ),
                     );
                   }
-                } else if (snapshot.hasData) {
-                  _handleApiResponse(snapshot.data.toString());
+                } else if (snapshot.hasData && !_isTaskAdded) {
+                  _isTaskAdded = true; // Set flag to true to avoid re-adding
+                  List<String> tasks = snapshot.data.toString().split("\n");
+                  for (String task in tasks) {
+                    context.read<GroqTasksDatabase>().addTask(task);
+                  }
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      // Clear future to avoid re-triggering addition
+                      _futureResponse = null;
+                    });
+                  });
                 }
+                context.read<GroqTasksDatabase>().fetchTasks();
                 return currentTasks.isNotEmpty
                     ? ListView.builder(
                         padding: EdgeInsets.all(5),
