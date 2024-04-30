@@ -105,6 +105,7 @@ class _TaskPageState extends State<TaskPage>
                           MainAxisSize.min, // To keep the dialog compact
                       children: [
                         TextField(
+                          cursorColor: Theme.of(context).colorScheme.secondary,
                           autofocus: true,
                           maxLines: 1,
                           controller: manualTaskController,
@@ -194,6 +195,7 @@ class _TaskPageState extends State<TaskPage>
                   Expanded(
                     // This will constrain the width of the TextFormField
                     child: TextFormField(
+                      cursorColor: Theme.of(context).colorScheme.secondary,
                       style: GoogleFonts.openSans(fontSize: 18),
                       decoration: InputDecoration(
                         hintText: "Describe your task to me...",

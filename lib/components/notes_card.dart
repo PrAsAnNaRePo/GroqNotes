@@ -39,7 +39,7 @@ class NotesCard extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  body.length > 100 ? '${body.substring(0, 100)}...' : body,
+                  body.length > 150 ? '${body.substring(0, 150)}...' : body,
                   style: TextStyle(
                     fontSize: 16,
                     color: Theme.of(context)
