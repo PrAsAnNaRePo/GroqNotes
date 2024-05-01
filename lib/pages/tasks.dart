@@ -35,6 +35,17 @@ class _TaskPageState extends State<TaskPage>
     super.dispose();
   }
 
+  void _showToast(BuildContext context) {
+    final scaffold = ScaffoldMessenger.of(context);
+    scaffold.showSnackBar(
+      SnackBar(
+        content: const Text('Network error! Please try again later.'),
+        action: SnackBarAction(
+            label: 'UNDO', onPressed: scaffold.hideCurrentSnackBar),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final taskDatabase = context.watch<GroqTasksDatabase>();
@@ -268,6 +279,17 @@ class _TaskPageState extends State<TaskPage>
                       _futureResponse = null;
                     });
                   });
+                } else if (snapshot.hasError) {
+                  _showToast(context);
+                  return Center(
+                    child: Text(
+                      "Network error! Please try again later.",
+                      style: GoogleFonts.openSans(
+                        fontSize: 20,
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                  );
                 }
                 context.read<GroqTasksDatabase>().fetchTasks();
                 return currentTasks.isNotEmpty

@@ -195,6 +195,8 @@ class _CreateNotesState extends State<CreateNotes> {
                       ),
                     ),
                   );
+                } else if (snapshot.hasError) {
+                  return const Text("Error occured while fetching data");
                 } else {
                   if (snapshot.data != null) {
                     bodyController.text = snapshot.data.toString();
