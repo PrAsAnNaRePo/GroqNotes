@@ -153,7 +153,7 @@ class _NotesPageState extends State<NotesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor:
-            Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+            Theme.of(context).colorScheme.secondary.withOpacity(0.1),
         onPressed: () {
           Navigator.push(
             context,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:groq_some_notes/database/groq_tasks.dart';
+import 'package:groq_some_notes/utils/convert_int_mon_to_string.dart';
 import 'package:groq_some_notes/utils/get_llm_response.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
@@ -114,7 +115,7 @@ class _CreateNotesState extends State<CreateNotes> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
+              padding: const EdgeInsets.only(top: 8, left: 12, right: 8),
               child: TextField(
                 cursorColor: Theme.of(context).colorScheme.secondary,
                 controller: titleController,
@@ -139,7 +140,7 @@ class _CreateNotesState extends State<CreateNotes> {
               child: Row(
                 children: [
                   Text(
-                    "${DateTime.now().day}/${DateTime.now().month}  ${DateTime.now().hour}:${DateTime.now().minute}",
+                    "${DateTime.now().day} ${monthNames[DateTime.now().month]}  ${DateTime.now().hour}:${DateTime.now().minute}",
                     style: GoogleFonts.roboto(
                         fontSize: 16,
                         color: Theme.of(context).colorScheme.secondary),

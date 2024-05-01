@@ -77,7 +77,7 @@ class _TaskPageState extends State<TaskPage>
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor:
-            Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+            Theme.of(context).colorScheme.secondary.withOpacity(0.1),
         onPressed: () {
           showGeneralDialog(
             context: context,
@@ -111,10 +111,9 @@ class _TaskPageState extends State<TaskPage>
                           controller: manualTaskController,
                           decoration: InputDecoration(
                             hintText: "Enter your task here...",
-                            hintStyle: TextStyle(
+                            hintStyle: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w500,
-                              color: Theme.of(context).colorScheme.onPrimary,
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
@@ -213,11 +212,11 @@ class _TaskPageState extends State<TaskPage>
                     onPressed: () {
                       if (aiTaskController.text.isNotEmpty) {
                         setState(() {
-                          aiTaskController.clear();
                           FocusScope.of(context).unfocus();
                           _futureResponse = getTasksList(
                               "Create a task list for:\n${aiTaskController.text}");
                         });
+                        aiTaskController.clear();
                       }
                     },
                     icon: Icon(
@@ -239,13 +238,21 @@ class _TaskPageState extends State<TaskPage>
                     return Shimmer.fromColors(
                       baseColor: Colors.grey.shade700,
                       highlightColor: Colors.grey.shade400,
-                      child: ListView.builder(
-                        itemCount: currentTasks.length,
-                        itemBuilder: (context, index) {
-                          return TaskCard(
-                            task: currentTasks[index],
-                          );
-                        },
+                      child: Center(
+                        child: ListView.builder(
+                          itemCount: currentTasks.length,
+                          itemBuilder: (context, index) {
+                            return TaskCard(
+                              task: currentTasks[index],
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: Theme.of(context).colorScheme.secondary,
                       ),
                     );
                   }
@@ -264,14 +271,18 @@ class _TaskPageState extends State<TaskPage>
                 }
                 context.read<GroqTasksDatabase>().fetchTasks();
                 return currentTasks.isNotEmpty
-                    ? ListView.builder(
-                        padding: const EdgeInsets.all(5),
-                        itemCount: currentTasks.length,
-                        itemBuilder: (context, index) {
-                          return TaskCard(
-                            task: currentTasks[index],
-                          );
-                        },
+                    ? Center(
+                        child: Center(
+                          child: ListView.builder(
+                            padding: const EdgeInsets.all(5),
+                            itemCount: currentTasks.length,
+                            itemBuilder: (context, index) {
+                              return TaskCard(
+                                task: currentTasks[index],
+                              );
+                            },
+                          ),
+                        ),
                       )
                     : Center(
                         child: Text(
