@@ -22,8 +22,13 @@ const TasksSchema = CollectionSchema(
       name: r'createdAt',
       type: IsarType.dateTime,
     ),
-    r'taskList': PropertySchema(
+    r'isDone': PropertySchema(
       id: 1,
+      name: r'isDone',
+      type: IsarType.bool,
+    ),
+    r'taskList': PropertySchema(
+      id: 2,
       name: r'taskList',
       type: IsarType.string,
     )
@@ -59,7 +64,8 @@ void _tasksSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeString(offsets[1], object.taskList);
+  writer.writeBool(offsets[1], object.isDone);
+  writer.writeString(offsets[2], object.taskList);
 }
 
 Tasks _tasksDeserialize(
@@ -71,7 +77,8 @@ Tasks _tasksDeserialize(
   final object = Tasks();
   object.createdAt = reader.readDateTimeOrNull(offsets[0]);
   object.id = id;
-  object.taskList = reader.readString(offsets[1]);
+  object.isDone = reader.readBool(offsets[1]);
+  object.taskList = reader.readString(offsets[2]);
   return object;
 }
 
@@ -85,6 +92,8 @@ P _tasksDeserializeProp<P>(
     case 0:
       return (reader.readDateTimeOrNull(offset)) as P;
     case 1:
+      return (reader.readBool(offset)) as P;
+    case 2:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -300,6 +309,15 @@ extension TasksQueryFilter on QueryBuilder<Tasks, Tasks, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Tasks, Tasks, QAfterFilterCondition> isDoneEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'isDone',
+        value: value,
+      ));
+    });
+  }
+
   QueryBuilder<Tasks, Tasks, QAfterFilterCondition> taskListEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -448,6 +466,18 @@ extension TasksQuerySortBy on QueryBuilder<Tasks, Tasks, QSortBy> {
     });
   }
 
+  QueryBuilder<Tasks, Tasks, QAfterSortBy> sortByIsDone() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDone', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Tasks, Tasks, QAfterSortBy> sortByIsDoneDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDone', Sort.desc);
+    });
+  }
+
   QueryBuilder<Tasks, Tasks, QAfterSortBy> sortByTaskList() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taskList', Sort.asc);
@@ -486,6 +516,18 @@ extension TasksQuerySortThenBy on QueryBuilder<Tasks, Tasks, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Tasks, Tasks, QAfterSortBy> thenByIsDone() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDone', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Tasks, Tasks, QAfterSortBy> thenByIsDoneDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isDone', Sort.desc);
+    });
+  }
+
   QueryBuilder<Tasks, Tasks, QAfterSortBy> thenByTaskList() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'taskList', Sort.asc);
@@ -503,6 +545,12 @@ extension TasksQueryWhereDistinct on QueryBuilder<Tasks, Tasks, QDistinct> {
   QueryBuilder<Tasks, Tasks, QDistinct> distinctByCreatedAt() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'createdAt');
+    });
+  }
+
+  QueryBuilder<Tasks, Tasks, QDistinct> distinctByIsDone() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isDone');
     });
   }
 
@@ -524,6 +572,12 @@ extension TasksQueryProperty on QueryBuilder<Tasks, Tasks, QQueryProperty> {
   QueryBuilder<Tasks, DateTime?, QQueryOperations> createdAtProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'createdAt');
+    });
+  }
+
+  QueryBuilder<Tasks, bool, QQueryOperations> isDoneProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isDone');
     });
   }
 

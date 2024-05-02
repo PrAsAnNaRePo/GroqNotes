@@ -14,8 +14,6 @@ class TaskCard extends StatefulWidget {
 }
 
 class _TaskCardState extends State<TaskCard> {
-  bool isCompleted = false;
-
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -58,18 +56,18 @@ class _TaskCardState extends State<TaskCard> {
                 borderRadius: BorderRadius.circular(5),
               ),
               // checkColor: Theme.of(context).colorScheme.secondary,
-              value: isCompleted,
+              value: widget.task.isDone,
               onChanged: (value) {
-                setState(() {
-                  isCompleted = value!;
-                });
+                context
+                    .read<GroqTasksDatabase>()
+                    .updateTasks(widget.task.id, null, !widget.task.isDone);
               },
             ),
             title: Text(
               widget.task.taskList.length > 35
                   ? "${widget.task.taskList.substring(0, 35)}..."
                   : widget.task.taskList,
-              style: isCompleted
+              style: widget.task.isDone
                   ? TextStyle(
                       color: Theme.of(context)
                           .colorScheme

@@ -7,4 +7,5 @@ class Tasks {
   Id id = Isar.autoIncrement;
   DateTime? createdAt;
   late String taskList;
+  bool isDone = false;
 }

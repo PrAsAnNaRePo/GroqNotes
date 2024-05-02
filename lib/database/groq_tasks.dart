@@ -59,11 +59,13 @@ class GroqTasksDatabase extends ChangeNotifier {
     }
   }
 
-  Future<void> updateTasks(int id, String newTask) async {
+  Future<void> updateTasks(int id, String? newTask, bool isDone) async {
     final existingTask = await isar.tasks.get(id);
     if (existingTask != null) {
-      existingTask.taskList = newTask;
-
+      if (newTask != null){
+        existingTask.taskList = newTask;
+      }
+      existingTask.isDone = isDone;
       await isar.writeTxn(() => isar.tasks.put(existingTask));
       await fetchTasks();
     }
