@@ -41,6 +41,13 @@ class _NotesViewState extends State<NotesView> {
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
+          IconButton(
+            onPressed: () {
+              context.read<GroqTasksDatabase>().deleteNote(widget.note.id);
+              Navigator.pop(context);
+            },
+            icon: Icon(Icons.delete_outline_rounded),
+          ),
           Visibility(
             visible: titleController.text != widget.note.title ||
                 bodyController.text != widget.note.bodty,
