@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:groq_some_notes/database/groq_tasks.dart';
 import 'package:groq_some_notes/models/tasks.dart';
 import 'package:groq_some_notes/utils/convert_int_mon_to_string.dart';
@@ -68,19 +69,19 @@ class _TaskCardState extends State<TaskCard> {
                   ? "${widget.task.taskList.substring(0, 35)}..."
                   : widget.task.taskList,
               style: widget.task.isDone
-                  ? TextStyle(
+                  ? GoogleFonts.poppins(
                       color: Theme.of(context)
                           .colorScheme
                           .inversePrimary
                           .withOpacity(0.7),
                       decoration: TextDecoration.lineThrough,
-                      fontSize: 20,
+                      fontSize: 18,
                       fontWeight: FontWeight.w400,
                       decorationThickness: 2.5,
                       decorationColor: Theme.of(context).colorScheme.secondary,
                     )
-                  : const TextStyle(
-                      fontSize: 20,
+                  : GoogleFonts.poppins(
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
             ),

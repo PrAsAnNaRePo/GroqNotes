@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:groq_some_notes/database/groq_tasks.dart';
 import 'package:groq_some_notes/models/notes.dart';
+import 'package:groq_some_notes/utils/convert_int_mon_to_string.dart';
 import 'package:provider/provider.dart';
 
 class NotesView extends StatefulWidget {
@@ -46,7 +47,7 @@ class _NotesViewState extends State<NotesView> {
               context.read<GroqTasksDatabase>().deleteNote(widget.note.id);
               Navigator.pop(context);
             },
-            icon: Icon(Icons.delete_outline_rounded),
+            icon: const Icon(Icons.delete_outline_rounded),
           ),
           Visibility(
             visible: titleController.text != widget.note.title ||
@@ -94,7 +95,7 @@ class _NotesViewState extends State<NotesView> {
                     child: Row(
                       children: [
                         Text(
-                          "${DateTime.now().day}/${DateTime.now().month}  ${DateTime.now().hour}:${DateTime.now().minute}",
+                          "${widget.note.createdAt!.day} ${monthNames[widget.note.createdAt!.month]}  ${widget.note.createdAt!.hour}:${widget.note.createdAt!.minute}",
                           style: GoogleFonts.roboto(
                               fontSize: 16,
                               color: Theme.of(context).colorScheme.secondary),
@@ -118,10 +119,10 @@ class _NotesViewState extends State<NotesView> {
                       ),
                       maxLines: null,
                     ),
-                  )
+                  ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
