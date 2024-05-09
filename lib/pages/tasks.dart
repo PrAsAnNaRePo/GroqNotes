@@ -168,8 +168,7 @@ class _TaskPageState extends State<TaskPage>
                             child: Text(
                               "Create",
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).colorScheme.onSecondary,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -199,8 +198,9 @@ class _TaskPageState extends State<TaskPage>
           children: [
             const SizedBox(height: 20),
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
+              margin: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     // This will constrain the width of the TextFormField
@@ -219,22 +219,31 @@ class _TaskPageState extends State<TaskPage>
                       controller: aiTaskController,
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {
-                      if (aiTaskController.text.isNotEmpty) {
-                        setState(() {
-                          FocusScope.of(context).unfocus();
-                          _futureResponse = getTasksList(
-                              "Create a task list for:\n${aiTaskController.text}");
-                        });
-                        aiTaskController.clear();
-                      }
-                    },
-                    icon: Icon(
-                      Icons.send,
-                      color: Theme.of(context).colorScheme.secondary,
-                    ),
-                  ),
+                  aiTaskController.text != ""
+                      ? IconButton(
+                          onPressed: () {
+                            if (aiTaskController.text.isNotEmpty) {
+                              setState(() {
+                                FocusScope.of(context).unfocus();
+                                _futureResponse = getTasksList(
+                                    "Create a task list for:\n${aiTaskController.text}");
+                              });
+                              aiTaskController.clear();
+                            }
+                          },
+                          icon: Icon(
+                            Icons.send,
+                            color: Theme.of(context).colorScheme.secondary,
+                          ),
+                        )
+                      : IconButton(
+                          onPressed: () {},
+                          icon: Icon(
+                            Icons.mic_none_rounded,
+                            color: Theme.of(context).colorScheme.secondary,
+                            size: 28,
+                          ),
+                        ),
                 ],
               ),
             ),

@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:groq_some_notes/database/groq_tasks.dart';
 import 'package:groq_some_notes/utils/convert_int_mon_to_string.dart';
 import 'package:groq_some_notes/utils/get_llm_response.dart';
+import 'package:groq_some_notes/utils/markdown_controller.dart';
+import 'package:groq_some_notes/utils/markdown_mapping.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -15,7 +17,9 @@ class CreateNotes extends StatefulWidget {
 
 class _CreateNotesState extends State<CreateNotes> {
   final TextEditingController titleController = TextEditingController();
-  final TextEditingController bodyController = TextEditingController();
+  final CustomTextEditingController bodyController =
+      CustomTextEditingController(markdownMap);
+  // final TextEditingController bodyController = TextEditingController();
   final TextEditingController _controller = TextEditingController();
   Future<String>? _futureResponse;
 
@@ -23,6 +27,7 @@ class _CreateNotesState extends State<CreateNotes> {
   void dispose() {
     titleController.dispose();
     bodyController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -61,6 +66,7 @@ class _CreateNotesState extends State<CreateNotes> {
                                     _futureResponse = getResponse(
                                         "Instruction: ${_controller.text}\ncontent: ${bodyController.text}");
                                   });
+                                  _controller.clear();
                                   Navigator.pop(context);
                                 },
                                 child: Icon(
