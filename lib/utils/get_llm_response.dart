@@ -22,7 +22,7 @@ Future<String> getResponse(String query) async {
           {
             "role": "system",
             "content":
-                "You are a helpful assistant. Given the instruction and the content, You have make edit on the content based on the instruction. Also return only the edited content (no other text or suggestions). If the user wants you to write your own contens without any instruction given, you can write your own content."
+                "You are a helpful assistant. Given the instruction and the content, You have make edit on the content based on the instruction. Also return only the edited content (no other text or suggestions). If the user wants you to write your own contens without any instruction given, you can write your own content. Use Markdown format when necassary."
           },
           {
             "role": "user",

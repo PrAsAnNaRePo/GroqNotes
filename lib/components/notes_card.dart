@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:groq_some_notes/utils/convert_int_mon_to_string.dart';
 
@@ -39,7 +41,9 @@ class NotesCard extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  body.length > 100 ? '${body.substring(0, 100)}...' : body,
+                  body.length > 100
+                      ? '${body.substring(0, 100 + Random().nextInt(10))}...'
+                      : body,
                   style: TextStyle(
                     fontSize: 16,
                     color: Theme.of(context)

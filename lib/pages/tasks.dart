@@ -1,11 +1,21 @@
+import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:groq_some_notes/components/task_card.dart';
 import 'package:groq_some_notes/database/groq_tasks.dart';
 import 'package:groq_some_notes/models/tasks.dart';
 import 'package:groq_some_notes/pages/notes.dart';
 import 'package:groq_some_notes/utils/get_tasks_list.dart';
+import 'package:groq_some_notes/utils/voice_to_text.dart';
+import 'package:lottie/lottie.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:record_mp3/record_mp3.dart';
 import 'package:shimmer/shimmer.dart';
 
 class TaskPage extends StatefulWidget {
@@ -19,8 +29,9 @@ class _TaskPageState extends State<TaskPage>
     with SingleTickerProviderStateMixin {
   final TextEditingController aiTaskController = TextEditingController();
   final TextEditingController manualTaskController = TextEditingController();
-  Future<String>? _futureResponse;
-  bool _isTaskAdded = false;
+  bool startRec = false;
+  String audioPath = "";
+  bool makeShrimmer = false;
 
   @override
   void initState() {
@@ -35,27 +46,48 @@ class _TaskPageState extends State<TaskPage>
     super.dispose();
   }
 
-  void _showToast(BuildContext context) {
-    final scaffold = ScaffoldMessenger.of(context);
-    scaffold.showSnackBar(
-      SnackBar(
-        content: const Text('Network error! Please try again later.'),
-        action: SnackBarAction(
-            label: 'UNDO', onPressed: scaffold.hideCurrentSnackBar),
-      ),
-    );
+  Future<bool> checkPermission() async {
+    if (!await Permission.microphone.isGranted) {
+      PermissionStatus status = await Permission.microphone.request();
+      if (status != PermissionStatus.granted) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  Future<String> getFilePath() async {
+    Directory storageDirectory = await getApplicationDocumentsDirectory();
+    String sdPath = "${storageDirectory.path}/record";
+    var d = Directory(sdPath);
+    if (!d.existsSync()) {
+      d.createSync(recursive: true);
+    }
+    return "$sdPath/audio_task.mp3";
+  }
+
+  void startRecord() async {
+    bool hasPermission = await checkPermission();
+    if (hasPermission) {
+      audioPath = await getFilePath();
+      RecordMp3.instance.start(audioPath, (type) {
+        setState(() {});
+      });
+    } else {}
+    setState(() {});
+  }
+
+  void stopRecord() {
+    bool s = RecordMp3.instance.stop();
+    if (s) {
+      setState(() {});
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final taskDatabase = context.watch<GroqTasksDatabase>();
     List<Tasks> currentTasks = taskDatabase.currentTasks;
-    currentTasks.sort((a, b) {
-      var aCreatedAt = a.createdAt ?? DateTime(0);
-      var bCreatedAt = b.createdAt ?? DateTime(0);
-
-      return bCreatedAt.compareTo(aCreatedAt);
-    });
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
@@ -68,21 +100,52 @@ class _TaskPageState extends State<TaskPage>
         centerTitle: true,
         leading: Icon(
           Icons.task_alt,
-          size: 28,
+          size: 36,
           color: Theme.of(context).colorScheme.secondary,
         ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                startRec = !startRec;
+                startRecord();
+              });
+            },
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: Image(
+                image: AssetImage("assets/images/ai_mic.gif"),
+                width: 38,
+                height: 38,
+                color: Colors.amber,
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const NotesPage()),
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const NotesPage();
+                  },
+                ),
               );
             },
-            icon: const Icon(Icons.note_alt_outlined, size: 28),
+            child: Container(
+              margin: const EdgeInsets.symmetric(
+                horizontal: 11,
+              ),
+              child: Image.asset(
+                'assets/images/writing.png',
+                height: 26,
+                width: 26,
+                color: Theme.of(context).colorScheme.inversePrimary,
+              ),
+            ),
           ),
         ],
       ),
@@ -101,7 +164,8 @@ class _TaskPageState extends State<TaskPage>
                   reverseCurve: Curves.easeOutCubic,
                 ),
                 child: Dialog(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  backgroundColor:
+                      Theme.of(context).colorScheme.primary.withOpacity(0.2),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                     side: BorderSide(
@@ -110,6 +174,15 @@ class _TaskPageState extends State<TaskPage>
                   ),
                   elevation: 10,
                   child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Colors.white.withOpacity(0.2),
+                              Colors.white.withOpacity(0.1),
+                            ])),
                     padding: const EdgeInsets.all(20),
                     child: Column(
                       mainAxisSize:
@@ -142,6 +215,7 @@ class _TaskPageState extends State<TaskPage>
                             height: 20), // Space between text field and button
                         InkWell(
                           onTap: () {
+                            HapticFeedback.mediumImpact();
                             if (manualTaskController.text.isNotEmpty) {
                               context
                                   .read<GroqTasksDatabase>()
@@ -193,139 +267,307 @@ class _TaskPageState extends State<TaskPage>
         ),
       ),
       body: SafeArea(
-        // Ensure the body is within the safe area of the screen
         child: Column(
           children: [
-            const SizedBox(height: 20),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            const SizedBox(height: 30),
+            Visibility(
+              visible: startRec,
+              child: Column(
                 children: [
-                  Expanded(
-                    // This will constrain the width of the TextFormField
-                    child: TextFormField(
-                      cursorColor: Theme.of(context).colorScheme.secondary,
-                      style: GoogleFonts.openSans(fontSize: 18),
-                      decoration: InputDecoration(
-                        hintText: "Describe your task to me...",
-                        hintStyle: GoogleFonts.openSans(fontSize: 18),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        contentPadding: const EdgeInsets.all(20),
-                      ),
-                      maxLines: 2,
-                      controller: aiTaskController,
-                    ),
-                  ),
-                  aiTaskController.text != ""
-                      ? IconButton(
-                          onPressed: () {
-                            if (aiTaskController.text.isNotEmpty) {
-                              setState(() {
-                                FocusScope.of(context).unfocus();
-                                _futureResponse = getTasksList(
-                                    "Create a task list for:\n${aiTaskController.text}");
+                  Lottie.asset('assets/lottie/Animation - 1715235771226.json'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          stopRecord();
+                          setState(() {
+                            makeShrimmer = true;
+                          });
+                          voiceToText(audioPath).then((value) {
+                            if (value.isNotEmpty) {
+                              getTasksList(value).then((value) {
+                                final tasks = value.split('\n');
+                                for (var task in tasks) {
+                                  context
+                                      .read<GroqTasksDatabase>()
+                                      .addTask(task);
+                                }
+                                setState(() {
+                                  makeShrimmer = false;
+                                });
                               });
-                              aiTaskController.clear();
                             }
-                          },
-                          icon: Icon(
-                            Icons.send,
-                            color: Theme.of(context).colorScheme.secondary,
+                          });
+                          setState(() {
+                            startRec = !startRec;
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.inversePrimary,
+                            borderRadius: BorderRadius.circular(25),
                           ),
-                        )
-                      : IconButton(
-                          onPressed: () {},
-                          icon: Icon(
-                            Icons.mic_none_rounded,
-                            color: Theme.of(context).colorScheme.secondary,
-                            size: 28,
+                          child: Text(
+                            "Stop",
+                            style: GoogleFonts.poppins(
+                              color: Theme.of(context).colorScheme.background,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
+                      ),
+                      const SizedBox(width: 30),
+                      GestureDetector(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          stopRecord();
+                          setState(() {
+                            startRec = !startRec;
+                          });
+                        },
+                        child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Image(
+                              image:
+                                  const AssetImage('assets/images/close.png'),
+                              width: 32,
+                              height: 32,
+                              color:
+                                  Theme.of(context).colorScheme.inversePrimary,
+                            )),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
-            const SizedBox(height: 20),
             Expanded(
-                // Takes the remaining space in the column
-                child: FutureBuilder(
-              future: _futureResponse,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  if (currentTasks.isNotEmpty) {
-                    return Shimmer.fromColors(
-                      baseColor: Colors.grey.shade700,
-                      highlightColor: Colors.grey.shade400,
-                      child: Center(
-                        child: ListView.builder(
+              child: currentTasks.isEmpty
+                  ? Center(
+                      child: Text(
+                        "No notes available",
+                        style: GoogleFonts.openSans(
+                          fontSize: 20,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                      ),
+                    )
+                  : makeShrimmer
+                      ? currentTasks.isEmpty
+                          ? CircularProgressIndicator(
+                              color: Theme.of(context).colorScheme.secondary,
+                            )
+                          : Shimmer.fromColors(
+                              baseColor: Colors.grey.shade600,
+                              highlightColor: Colors.grey.shade800,
+                              direction: ShimmerDirection.ltr,
+                              child: ListView.builder(
+                                itemCount: currentTasks.length,
+                                itemBuilder: (context, index) {
+                                  return Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      TaskCard(task: currentTasks[index]),
+                                    ],
+                                  );
+                                },
+                              ),
+                            )
+                      : ListView.builder(
                           itemCount: currentTasks.length,
                           itemBuilder: (context, index) {
-                            return TaskCard(
-                              task: currentTasks[index],
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                GestureDetector(
+                                    onTap: () {
+                                      manualTaskController.text =
+                                          currentTasks[index].taskList;
+                                      showGeneralDialog(
+                                        context: context,
+                                        pageBuilder: (context, animation,
+                                            secondaryAnimation) {
+                                          return ScaleTransition(
+                                            scale: CurvedAnimation(
+                                              parent: animation,
+                                              curve: Curves
+                                                  .elasticInOut, // This curve provides a spring-like effect
+                                              reverseCurve: Curves.easeOutCubic,
+                                            ),
+                                            child: Dialog(
+                                              backgroundColor: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withOpacity(0.2),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                side: BorderSide(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .background,
+                                                    width: 2),
+                                              ),
+                                              elevation: 10,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                    gradient: LinearGradient(
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end: Alignment
+                                                            .bottomRight,
+                                                        colors: [
+                                                          Colors.white
+                                                              .withOpacity(0.2),
+                                                          Colors.white
+                                                              .withOpacity(0.1),
+                                                        ])),
+                                                padding:
+                                                    const EdgeInsets.all(20),
+                                                child: Column(
+                                                  mainAxisSize: MainAxisSize
+                                                      .min, // To keep the dialog compact
+                                                  children: [
+                                                    TextField(
+                                                      cursorColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .secondary,
+                                                      autofocus: true,
+                                                      maxLines: 1,
+                                                      controller:
+                                                          manualTaskController,
+                                                      decoration:
+                                                          InputDecoration(
+                                                        hintText:
+                                                            "Enter your task here...",
+                                                        hintStyle:
+                                                            const TextStyle(
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w500,
+                                                        ),
+                                                        border:
+                                                            OutlineInputBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(20),
+                                                          borderSide: BorderSide(
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .secondary),
+                                                        ),
+                                                        filled: true,
+                                                        fillColor:
+                                                            Theme.of(context)
+                                                                .colorScheme
+                                                                .surface,
+                                                        contentPadding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 20,
+                                                                vertical: 10),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                        height:
+                                                            20), // Space between text field and button
+                                                    InkWell(
+                                                      onTap: () {
+                                                        HapticFeedback
+                                                            .mediumImpact();
+                                                        if (manualTaskController
+                                                            .text.isNotEmpty) {
+                                                          context
+                                                              .read<
+                                                                  GroqTasksDatabase>()
+                                                              .updateTasks(
+                                                                  currentTasks[
+                                                                          index]
+                                                                      .id,
+                                                                  manualTaskController
+                                                                      .text,
+                                                                  currentTasks[
+                                                                          index]
+                                                                      .isDone);
+                                                          manualTaskController
+                                                              .clear();
+                                                          FocusScope.of(context)
+                                                              .unfocus();
+                                                          Navigator.pop(
+                                                              context);
+                                                        }
+                                                      },
+                                                      child: Ink(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color:
+                                                              Theme.of(context)
+                                                                  .colorScheme
+                                                                  .secondary,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(25),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                      0.1),
+                                                              spreadRadius: 1,
+                                                              blurRadius: 10,
+                                                              offset:
+                                                                  const Offset(
+                                                                      0, 3),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(15.0),
+                                                        child: Text(
+                                                          "Save",
+                                                          style: TextStyle(
+                                                            color: Theme.of(
+                                                                    context)
+                                                                .colorScheme
+                                                                .primary,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        transitionDuration:
+                                            const Duration(milliseconds: 500),
+                                        barrierDismissible: true,
+                                        barrierLabel: 'Dismiss',
+                                      );
+                                    },
+                                    child: TaskCard(task: currentTasks[index])),
+                              ],
                             );
                           },
                         ),
-                      ),
-                    );
-                  } else {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    );
-                  }
-                } else if (snapshot.hasData && !_isTaskAdded) {
-                  _isTaskAdded = true; // Set flag to true to avoid re-adding
-                  List<String> tasks = snapshot.data.toString().split("\n");
-                  for (String task in tasks) {
-                    context.read<GroqTasksDatabase>().addTask(task);
-                  }
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    setState(() {
-                      // Clear future to avoid re-triggering addition
-                      _futureResponse = null;
-                    });
-                  });
-                } else if (snapshot.hasError) {
-                  _showToast(context);
-                  return Center(
-                    child: Text(
-                      "Network error! Please try again later.",
-                      style: GoogleFonts.openSans(
-                        fontSize: 20,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
-                    ),
-                  );
-                }
-                context.read<GroqTasksDatabase>().fetchTasks();
-                return currentTasks.isNotEmpty
-                    ? Center(
-                        child: Center(
-                          child: ListView.builder(
-                            padding: const EdgeInsets.all(5),
-                            itemCount: currentTasks.length,
-                            itemBuilder: (context, index) {
-                              return TaskCard(
-                                task: currentTasks[index],
-                              );
-                            },
-                          ),
-                        ),
-                      )
-                    : Center(
-                        child: Text(
-                          "No tasks yet!",
-                          style: GoogleFonts.openSans(
-                            fontSize: 20,
-                            color: Theme.of(context).colorScheme.secondary,
-                          ),
-                        ),
-                      );
-              },
-            )),
+            )
           ],
         ),
       ),

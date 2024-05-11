@@ -21,18 +21,18 @@ class _TaskCardState extends State<TaskCard> {
       padding: const EdgeInsets.only(left: 10, right: 10, bottom: 15),
       child: Slidable(
         endActionPane: ActionPane(
-          extentRatio: 0.4,
+          extentRatio: 0.3,
           motion: const ScrollMotion(),
           children: [
             SlidableAction(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(35),
               onPressed: (context) {
                 context.read<GroqTasksDatabase>().deleteTask(widget.task.id);
                 context.read<GroqTasksDatabase>().fetchTasks();
               },
               icon: Icons.delete,
               backgroundColor: Colors.red,
-            )
+            ),
           ],
         ),
         child: Container(

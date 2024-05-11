@@ -45,10 +45,14 @@ class _NotesPageState extends State<NotesPage> {
           ),
         ),
         centerTitle: true,
-        leading: Icon(
-          Icons.note_alt_outlined,
-          size: 28,
-          color: Theme.of(context).colorScheme.secondary,
+        leading: Container(
+          margin: const EdgeInsets.only(top: 13, left: 15, bottom: 10),
+          child: Image.asset(
+            'assets/images/writing.png',
+            height: 50,
+            width: 50,
+            color: Theme.of(context).colorScheme.secondary,
+          ),
         ),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(

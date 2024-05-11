@@ -1,10 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:groq_some_notes/database/groq_tasks.dart';
 import 'package:groq_some_notes/utils/convert_int_mon_to_string.dart';
 import 'package:groq_some_notes/utils/get_llm_response.dart';
-import 'package:groq_some_notes/utils/markdown_controller.dart';
-import 'package:groq_some_notes/utils/markdown_mapping.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -15,19 +15,35 @@ class CreateNotes extends StatefulWidget {
   State<CreateNotes> createState() => _CreateNotesState();
 }
 
-class _CreateNotesState extends State<CreateNotes> {
+class _CreateNotesState extends State<CreateNotes>
+    with SingleTickerProviderStateMixin {
   final TextEditingController titleController = TextEditingController();
-  final CustomTextEditingController bodyController =
-      CustomTextEditingController(markdownMap);
-  // final TextEditingController bodyController = TextEditingController();
+  final TextEditingController bodyController = TextEditingController();
   final TextEditingController _controller = TextEditingController();
+  late AnimationController _animationController;
+  late Animation<double> _animation;
   Future<String>? _futureResponse;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this, // vsync is set to this for performance reasons
+      duration: Duration(seconds: 2), // Set the duration of the animation
+    );
+    _animation = Tween<double>(
+      begin: 0, // Start rotation angle
+      end: 2 * 3.141, // End rotation angle (2 * pi for a full circle)
+    ).animate(_animationController);
+    _animationController.repeat();
+  }
 
   @override
   void dispose() {
     titleController.dispose();
     bodyController.dispose();
     _controller.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -95,11 +111,19 @@ class _CreateNotesState extends State<CreateNotes> {
                 },
               );
             },
-            child: Image(
-              image: const AssetImage("assets/images/energy.png"),
-              width: 35,
-              height: 35,
-              color: Theme.of(context).colorScheme.secondary,
+            child: AnimatedBuilder(
+              animation: _animation,
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: _animation.value * (_futureResponse == null ? 1 : 3),
+                  child: Image(
+                    image: const AssetImage("assets/images/energy.png"),
+                    width: 35,
+                    height: 35,
+                    color: Theme.of(context).colorScheme.secondary,
+                  ),
+                );
+              },
             ),
           ),
           IconButton(
