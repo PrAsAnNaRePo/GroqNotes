@@ -29,7 +29,7 @@ class _CreateNotesState extends State<CreateNotes>
     super.initState();
     _animationController = AnimationController(
       vsync: this, // vsync is set to this for performance reasons
-      duration: Duration(seconds: 2), // Set the duration of the animation
+      duration: const Duration(seconds: 2), // Set the duration of the animation
     );
     _animation = Tween<double>(
       begin: 0, // Start rotation angle
